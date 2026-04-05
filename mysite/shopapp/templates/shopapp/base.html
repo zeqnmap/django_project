@@ -5,9 +5,13 @@
     <title>{% block title %}Мой магазин{% endblock %}</title>
 </head>
 <body>
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
+    <h1>МАГАЗИН</h1>
+    {% block body %}
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    {% endblock %}
+
     <footer>
         <p>{% now 'Y:H:i' %} Мой магазин</p>
         <div>

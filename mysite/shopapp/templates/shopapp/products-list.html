@@ -1,0 +1,22 @@
+{% extends 'shopapp/base.html' %}
+
+{% block title %}
+  Products list
+{% endblock %}
+
+{% block body %}
+  <h1>Products list</h1>
+  {% if products %}
+    <div>
+      {% for product in products %}
+      <div>
+        <p>name: {{ product.name }}</p>
+        <p>price: {{ product.price }}</p>
+        <p>discount: {% firstof product.discount 'no discount' %}</p>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+  <h3>no products</h3>
+  {% endif %}
+{% endblock %}
