@@ -1,0 +1,22 @@
+{% extends 'shopapp/base.html' %}
+
+{% block title %}Каталог товаров{% endblock %}
+
+{% block content %}
+    <h1>Список товаров</h1>
+
+    {% if products %}
+        <ul>
+            {% for product in products %}
+                <li>
+                    {{ product.name|upper }}
+                    Цена: {{ product.price }} руб.<br>
+                    Описание: {{ product.description }}<br>
+                    Добавлен: {{ product.created_at|date:"d.m.Y" }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Товаров пока нет.</p>
+    {% endif %}
+{% endblock %}
