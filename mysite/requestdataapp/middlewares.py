@@ -44,7 +44,7 @@ class ThrottlingMiddleware:
     """
     def __init__(self, get_response):
         self.get_response = get_response
-        self.rate_limit_seconds = 2
+        self.rate_limit_seconds = 0.00001
         self.cache_prefix = "throttle_ip_"
 
     def __call__(self, request):
