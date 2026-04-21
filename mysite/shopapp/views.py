@@ -29,7 +29,7 @@ def shop_index(request: HttpRequest):
         },
     ]
     context = {'products': products}
-    return render(request, 'shopapp/index.html', context=context)
+    return render(request, 'shopapp/main.html', context=context)
 
 
 def groups_list(request: HttpRequest):
