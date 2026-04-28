@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, reverse
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 
 from .forms import GroupForm
 from .models import Product, Order
@@ -53,16 +54,29 @@ class ProductsListView(ListView):
     queryset = Product.objects.filter(archived=False)
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shopapp.create_product"
+
     model = Product
     fields = "name", "price", "description", "discount"
     success_url = reverse_lazy("shopapp:products_list")
 
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
 
-class ProductUpdateView(UpdateView):
+
+class ProductUpdateView(PermissionRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     fields = "name", "price", "description", "discount"
     template_name_suffix = "_update_form"
+    permission_required = "shopapp.change_product"
+
+    def test_func(self):
+        if self.request.user.is_superuser:
+            return True
+        product = self.get_object()
+        return product.created_by == self.request.user
 
     def get_success_url(self):
         return reverse(
@@ -71,10 +85,17 @@ class ProductUpdateView(UpdateView):
         )
 
 
-class ProductArchivedView(DeleteView):
+class ProductArchivedView(PermissionRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Product
     template_name = "shopapp/product_archived.html"
     success_url = reverse_lazy("shopapp:products_list")
+    permission_required = "shopapp.delete_product"
+
+    def test_func(self):
+        if self.request.user.is_superuser:
+            return True
+        product = self.get_object()
+        return product.created_by == self.request.user
 
     def form_valid(self, form):
         success_url = self.get_success_url()
@@ -83,7 +104,7 @@ class ProductArchivedView(DeleteView):
         return HttpResponseRedirect(success_url)
 
 
-class OrdersListView(ListView):
+class OrdersListView(LoginRequiredMixin, ListView):
     queryset = (
         Order.objects
         .select_related("user")
@@ -91,7 +112,8 @@ class OrdersListView(ListView):
     )
 
 
-class OrderDetailView(DetailView):
+class OrderDetailView(PermissionRequiredMixin, DetailView):
+    permission_required = "shopapp.view_order"
     queryset = (
         Order.objects
         .select_related("user")
