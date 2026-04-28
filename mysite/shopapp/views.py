@@ -54,9 +54,8 @@ class ProductsListView(ListView):
     queryset = Product.objects.filter(archived=False)
 
 
-class ProductCreateView(UserPassesTestMixin, CreateView):
-    def test_func(self):
-        return self.request.user.is_superuser
+class ProductCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "shopapp.create_product"
 
     model = Product
     fields = "name", "price", "description", "discount"
