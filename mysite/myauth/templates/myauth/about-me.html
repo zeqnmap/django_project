@@ -5,16 +5,26 @@
 {% endblock %}
 
 {% block body %}
-  <h1>User info</h1>
-  {%if user.is_authenticated %}
-    <h2>Detail</h2>
-    <p>Username: {{ user.username }}</p>
-    <p>First name: {{ user.first_name }}</p>
-    <p>Last name: {{ user.last_name }}</p>
-    <p>Email: {{ user.email }}</p>
-    <p>Bio: {{ user.profile.bio }}</p>
+  <h1>My profile</h1>
+
+  <h2>{{ user_detail.username }}</h2>
+
+  {% if user_detail.profile.avatar %}
+    <img src="{{ user_detail.profile.avatar.url }}" alt="{{ user_detail.username }}">
   {% else %}
-    <h2>User is anonymous</h2>
+    <p>No avatar uploaded</p>
   {% endif %}
+
+  <p>Username: {{ user_detail.username }}</p>
+  <p>First name: {{ user_detail.first_name }}</p>
+  <p>Last name: {{ user_detail.last_name }}</p>
+  <p>Email: {{ user_detail.email }}</p>
+  <p>Bio: {{ user_detail.profile.bio }}</p>
+  <div>
+    <a href="{% url 'myauth:user-profile-update' pk=user.pk %}">Edit profile</a>
+  </div>
+  <div>
+    <a href="{% url 'myauth:users-list' %}">Back to users list</a>
+  </div>
 
 {% endblock %}
