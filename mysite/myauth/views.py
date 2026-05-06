@@ -1,18 +1,93 @@
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LogoutView
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import TemplateView, CreateView
+from django.views.generic import CreateView, UpdateView, ListView, DetailView
 
-from .models import Profile
+from .models import Profile, User
+from .forms import ProfileAvatarForm
 
 
-class AboutMeView(TemplateView):
+class UsersListView(LoginRequiredMixin, ListView):
+    model = User
+    template_name = "myauth/users_list.html"
+    context_object_name = "users"
+
+    def get_queryset(self):
+        return User.objects.select_related('profile').all()
+
+
+class UserDetailView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = "myauth/user_detail.html"
+    context_object_name = "user_detail"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            User.objects.select_related('profile'),
+            pk=self.kwargs.get('pk')
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_to_show = self.get_object()
+        context['can_edit'] = (
+                self.request.user.is_staff or
+                self.request.user.pk == user_to_show.pk
+        )
+        return context
+
+
+class UserProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Profile
+    form_class = ProfileAvatarForm
+    template_name = "myauth/user_profile_update.html"
+
+    def test_func(self):
+        user_pk = self.kwargs.get('pk')
+        return self.request.user.is_staff or self.request.user.pk == user_pk
+
+    def get_object(self, queryset=None):
+        user_pk = self.kwargs.get('pk')
+        user = get_object_or_404(User, pk=user_pk)
+        profile, created = Profile.objects.get_or_create(
+            user=user,
+            defaults={'created_by': self.request.user}
+        )
+        return profile
+
+    def get_success_url(self):
+        profile = self.get_object()
+        return reverse("myauth:user-detail", kwargs={"pk": profile.user.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile_user'] = self.get_object().user
+        return context
+
+
+class AboutMeView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    fields = ("avatar",)
     template_name = "myauth/about-me.html"
+    success_url = reverse_lazy("myauth:about-me")
+
+    def get_object(self, queryset=None):
+        profile, created = Profile.objects.get_or_create(
+            user=self.request.user,
+            defaults={'created_by': self.request.user}
+        )
+        return profile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
 
 
 class RegisterView(CreateView):

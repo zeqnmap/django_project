@@ -8,8 +8,8 @@ from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 
-from .forms import GroupForm
-from .models import Product, Order
+from .forms import GroupForm, ProductForm
+from .models import Product, Order, ProductImage
 
 
 class ShopIndexView(View):
@@ -44,7 +44,7 @@ class GroupsListView(View):
 
 class ProductDetailsView(DetailView):
     template_name = "shopapp/products-details.html"
-    model = Product
+    queryset = Product.objects.prefetch_related("images")
     context_object_name = "product"
 
 
@@ -58,7 +58,7 @@ class ProductCreateView(PermissionRequiredMixin, CreateView):
     permission_required = "shopapp.create_product"
 
     model = Product
-    fields = "name", "price", "description", "discount"
+    fields = "name", "price", "description", "discount", "preview"
     success_url = reverse_lazy("shopapp:products_list")
 
     def form_valid(self, form):
@@ -68,7 +68,7 @@ class ProductCreateView(PermissionRequiredMixin, CreateView):
 
 class ProductUpdateView(PermissionRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
-    fields = "name", "price", "description", "discount"
+    form_class = ProductForm
     template_name_suffix = "_update_form"
     permission_required = "shopapp.change_product"
 
@@ -83,6 +83,16 @@ class ProductUpdateView(PermissionRequiredMixin, UserPassesTestMixin, UpdateView
             "shopapp:product_details",
             kwargs={"pk": self.object.pk},
         )
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        for image in form.files.getlist("images"):
+            ProductImage.objects.create(
+                product=self.object,
+                image=image,
+            )
+
+        return response
 
 
 class ProductArchivedView(PermissionRequiredMixin, UserPassesTestMixin, DeleteView):
