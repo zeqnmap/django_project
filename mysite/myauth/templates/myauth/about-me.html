@@ -5,26 +5,30 @@
 {% endblock %}
 
 {% block body %}
-  <h1>My profile</h1>
+  <h1>User info</h1>
 
-  <h2>{{ user_detail.username }}</h2>
+  {% if user.is_authenticated %}
+    <h2>Detail</h2>
+    <p>Username: {{ user.username }}</p>
+    <p>First name: {{ user.first_name }}</p>
+    <p>Last name: {{ user.last_name }}</p>
+    <p>Email: {{ user.email }}</p>
 
-  {% if user_detail.profile.avatar %}
-    <img src="{{ user_detail.profile.avatar.url }}" alt="{{ user_detail.username }}">
+    <h3>Avatar:</h3>
+    {% if user.profile.avatar %}
+      <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}'s avatar">
+    {% else %}
+      <p>No avatar uploaded</p>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Save</button>
+    </form>
+
   {% else %}
-    <p>No avatar uploaded</p>
+    <h2>User is anonymous</h2>
   {% endif %}
-
-  <p>Username: {{ user_detail.username }}</p>
-  <p>First name: {{ user_detail.first_name }}</p>
-  <p>Last name: {{ user_detail.last_name }}</p>
-  <p>Email: {{ user_detail.email }}</p>
-  <p>Bio: {{ user_detail.profile.bio }}</p>
-  <div>
-    <a href="{% url 'myauth:user-profile-update' pk=user.pk %}">Edit profile</a>
-  </div>
-  <div>
-    <a href="{% url 'myauth:users-list' %}">Back to users list</a>
-  </div>
 
 {% endblock %}

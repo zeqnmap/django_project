@@ -71,13 +71,23 @@ class UserProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView)
         return context
 
 
-class AboutMeView(LoginRequiredMixin, DetailView):
-    model = User
+class AboutMeView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    fields = ("avatar",)
     template_name = "myauth/about-me.html"
-    context_object_name = "user_detail"
+    success_url = reverse_lazy("myauth:about-me")
 
     def get_object(self, queryset=None):
-        return self.request.user
+        profile, created = Profile.objects.get_or_create(
+            user=self.request.user,
+            defaults={'created_by': self.request.user}
+        )
+        return profile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
 
 
 class RegisterView(CreateView):
