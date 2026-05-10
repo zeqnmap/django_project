@@ -8,9 +8,28 @@ from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
+from django.utils.translation import gettext_lazy as _, ngettext
 
 from .models import Profile, User
 from .forms import ProfileAvatarForm
+
+
+class HelloView(View):
+    welcome_messages = _("welcome hello world!")
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        items_str = request.GET.get("items") or 0
+        items = int(items_str)
+        products_line = ngettext(
+            "one product",
+            "{count} products",
+            items
+        )
+        products_line = products_line.format(count=items)
+        return HttpResponse(
+            f"<h1>{self.welcome_messages}</h1>"
+            f"<h2>{products_line}</h2>"
+        )
 
 
 class UsersListView(LoginRequiredMixin, ListView):
