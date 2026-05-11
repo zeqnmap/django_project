@@ -14,7 +14,6 @@ class ProductInline(admin.StackedInline):
     model = ProductImage
 
 
-
 @admin.action(description="Archive products")
 def mark_archived(modeladmin: admin.ModelAdmin, request: HttpRequest, queryset: QuerySet):
     queryset.update(archived=True)
