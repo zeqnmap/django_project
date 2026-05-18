@@ -48,6 +48,7 @@ class ProductViewSet(ModelViewSet):
         "price",
         "discount",
     ]
+
     @extend_schema(
         summary='Get one product by ID',
         description="Retrieve **product**, returns 404 if not found",
@@ -57,7 +58,7 @@ class ProductViewSet(ModelViewSet):
         }
     )
     def retrieve(self, *args, **kwargs):
-        return super().retrieve(*args,** kwargs)
+        return super().retrieve(*args, **kwargs)
 
 
 class ShopIndexView(View):

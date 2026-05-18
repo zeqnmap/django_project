@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список статей</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .article-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .article-meta { color: #555; font-size: 0.9em; margin-bottom: 10px; }
+        .tag { background-color: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 0.85em; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Список публикаций</h1>
+
+    {% for article in articles %}
+        <div class="article-card">
+            <h2>{{ article.title }}</h2>
+
+            <div class="article-meta">
+                <span><strong>Дата:</strong> {{ article.pub_date|date:"d.m.Y H:i" }}</span> |
+                <span><strong>Автор:</strong> {{ article.author.name }}</span> |
+                <span><strong>Категория:</strong> {{ article.category.name }}</span>ё
+            </div>
+
+            <div class="article-tags">
+                <strong>Теги:</strong>
+                {% for tag in article.tags.all %}
+                    <span class="tag">#{{ tag.name }}</span>
+                {% empty %}
+                    <span style="color: #999;">нет тегов</span>
+                {% endfor %}
+            </div>
+        </div>
+    {% empty %}
+        <p>Статей пока нет.</p>
+    {% endfor %}
+
+</body>
+</html>
