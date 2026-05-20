@@ -26,7 +26,26 @@ SECRET_KEY = 'django-insecure-hvxn%qq=gyw^4*o2lo1#bw0=wh#ux9s8h!=@c608arf_gz3+^7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '0.0.0.0',
+    '127.0.0.1',
+]
+INTERNAL_IPS=[
+    '127.0.0.1',
+    '10.0.2.2',
+    '192.168.65.1'
+]
+
+
+if DEBUG:
+    import socket
+    try:
+        host_name, _, ips = socket.gethostbyname_ex(socket.gethostname())
+        INTERNAL_IPS.extend(
+            [ip[: ip.rfind('.')] + ".1" for ip in ips]
+        )
+    except socket.gaierror:
+        pass
 
 # Application definition
 
@@ -39,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
 
+    'debug_toolbar',
     'rest_framework',
     'django_filters',
     'drf_spectacular',
@@ -58,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.admindocs.middleware.XViewMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -151,24 +172,58 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = reverse_lazy("myauth:about-me")
 LOGIN_URL = reverse_lazy("myauth:login")
 
+LOGFILE_NAME = BASE_DIR /  "log.txt"
+LOGFILE_SIZE = 400
+LOGFILE_COUNT = 3
+
 LOGGING = {
     'version': 1,
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
-        }
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s [%(levelname)s]  %(name)s %(message)s'
+        },
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler'
-        }
+            'class': 'logging.StreamHandler',
+            'formatter':'verbose',
+        },
+        'logfile': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGFILE_NAME,
+            'maxBytes': LOGFILE_SIZE,
+            'backupCount': LOGFILE_COUNT,
+            'formatter': 'verbose',
+        },
     },
-    'loggers': {
-        'django.db.backends': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-        }
+    'root': {
+        'handlers': [
+            'console',
+            'logfile',
+        ],
+        'level': 'INFO',
     },
 }
+
+# LOGGING = {
+#     'version': 1,
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue'
+#         }
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#             'class': 'logging.StreamHandler'
+#         }
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#             'handlers': ['console'],
+#         }
+#     },
+# }

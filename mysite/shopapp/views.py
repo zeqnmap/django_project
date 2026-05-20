@@ -4,6 +4,7 @@
 Разные view интернет-магазина: по товарам, заказам и т.д.
 """
 
+import logging
 from timeit import default_timer
 
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, JsonResponse
@@ -20,6 +21,9 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from .forms import ProductForm
 from .models import Product, Order, ProductImage
 from .serializers import ProductSerializer
+
+
+log = logging.getLogger(__name__)
 
 
 @extend_schema(description="Products views CRUD")
@@ -72,6 +76,8 @@ class ShopIndexView(View):
             "time_running": default_timer(),
             "products": products,
         }
+        log.debug("Products for shop index: %s", products)
+        log.info("Rendering shop index")
         return render(request, 'shopapp/shop-index.html', context=context)
 
 
