@@ -1,0 +1,9 @@
+2026-05-22 19:59:27,763 [ERROR]  django.request Internal Server Error: /admin/shopapp/order/import-csv/
+Traceback (most recent call last):
+  File "/Users/yaroslavmanko/PycharmProjects/python_django_15/.venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/yaroslavmanko/PycharmProjects/python_django_15/.venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/yaroslavmanko/PycharmProjects/python_django_15/mysite/shopapp/admin.py", line 145, in import_csv
+    user = User.objects.get(id=row["user_id"])
+KeyError: 'user_id'

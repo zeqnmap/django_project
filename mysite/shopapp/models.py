@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
 
 
 def product_preview_directory_path(instance: "Product", filename: str) -> str:
@@ -28,6 +29,9 @@ class Product(models.Model):
     archived = models.BooleanField(default=False)
     preview = models.ImageField(null=True, blank=True, upload_to=product_preview_directory_path)
 
+    def get_absolute_url(self):
+        return reverse("shopapp:product_details", kwargs={"pk": self.pk})
+
     def __str__(self):
         return f"Product(pk={self.pk}, name={self.name!r})"
 
@@ -37,6 +41,8 @@ def product_images_directory_path(instance: "ProductImage", filename: str) -> st
         pk=instance.product.pk,
         filename=filename,
     )
+
+
 
 
 class ProductImage(models.Model):

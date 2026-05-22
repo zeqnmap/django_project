@@ -1,9 +1,16 @@
+import csv
+
 from django.contrib import admin
 from django.db.models import QuerySet
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.urls import path
 
+from .common import save_csv_products
 from .models import Product, Order, ProductImage
 from .admin_mixins import ExportAsCSVMixin
+from .forms import CSVImportForm
 
 
 class OrderInline(admin.TabularInline):
@@ -24,8 +31,11 @@ def mark_unarchived(modeladmin: admin.ModelAdmin, request: HttpRequest, queryset
     queryset.update(archived=False)
 
 
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin, ExportAsCSVMixin):
+    change_list_template ="shopapp/products_changelist.html"
     actions = [
         mark_archived,
         mark_unarchived,
@@ -63,9 +73,38 @@ class ProductAdmin(admin.ModelAdmin, ExportAsCSVMixin):
             return obj.description
         return obj.description[:48] + "..."
 
+    def import_csv(self, request: HttpRequest) -> HttpResponse:
+        if request.method == "GET":
+            form = CSVImportForm()
+            context = {"form" : form}
+            return render(request, "admin/csv_form.html", context)
+        form = CSVImportForm(request.POST, request.FILES)
+        if not form.is_valid():
+            context= {"form": form}
+            return render(request, "admin/csv_form.html", context, status=400)
+
+        save_csv_products(
+            form.files["csv_file"].file,
+            encoding=request.encoding
+        )
+        self.message_user(request, "Dara from CSV waw imported")
+        return redirect("..")
+
+
+
+    def get_urls(self):
+        urls = super().get_urls()
+        new_urls = [
+            path(
+                "import-products-csv/",
+                self.import_csv,
+                name="import_products_csv"
+            ),
+        ]
+        return new_urls + urls
+
 
 # admin.site.register(Product, ProductAdmin)
-
 
 # class ProductInline(admin.TabularInline):
 class ProductInline(admin.StackedInline):
@@ -74,6 +113,7 @@ class ProductInline(admin.StackedInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    change_list_template = "admin/orders_changelist.html"
     inlines = [
         ProductInline,
     ]
@@ -84,3 +124,51 @@ class OrderAdmin(admin.ModelAdmin):
 
     def user_verbose(self, obj: Order) -> str:
         return obj.user.first_name or obj.user.username
+
+    def import_csv(self, request: HttpRequest) -> HttpResponse:
+        if request.method == "GET":
+            form = CSVImportForm()
+            context = {"form": form}
+            return render(request, "admin/csv_form.html", context)
+
+        form = CSVImportForm(request.POST, request.FILES)
+        if not form.is_valid():
+            context = {"form": form}
+            return render(request, "admin/csv_form.html", context, status=400)
+
+        csv_file = form.files["csv_file"].file
+        file_data = csv_file.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(file_data)
+
+        for row in reader:
+            try:
+                user = User.objects.get(id=row["user_id"])
+
+                order = Order.objects.create(
+                    user=user,
+                    delivery_address=row.get("delivery_address", ""),
+                    promocode=row.get("promocode", ""),
+                )
+
+                products_str = row.get("products", "")
+                if products_str:
+                    product_ids = [int(p_id.strip()) for p_id in products_str.split(",") if p_id.strip()]
+                    order.products.set(Product.objects.filter(id__in=product_ids))
+
+            except User.DoesNotExist:
+                self.message_user(request, f"Пользователь с ID {row.get('user_id')} не найден")
+                continue
+
+        self.message_user(request, "Данные заказов из CSV успешно импортированы")
+        return redirect("..")
+
+    def get_urls(self):
+        urls = super().get_urls()
+        new_urls = [
+            path(
+                "import-csv/",
+                self.import_csv,
+                name="import_orders_csv"
+            ),
+        ]
+        return new_urls + urls
