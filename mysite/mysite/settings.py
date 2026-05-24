@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,6 +81,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.admindocs.middleware.XViewMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -111,6 +113,18 @@ DATABASES = {
         'NAME': BASE_DIR / 'sqlite3.db',
     }
 }
+
+CACHES = {
+    "default": {
+        # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+      "BACKEND":"django.core.cache.backends.filebased.FileBasedCache",
+      # "LOCATION": "/var/tmp/django_cache",
+      "LOCATION": BASE_DIR / "django_cache",
+    },
+}
+
+CACHE_MIDDLEWARE_SECONDS = 200
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

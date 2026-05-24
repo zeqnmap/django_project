@@ -1,0 +1,32 @@
+{% extends 'shopapp/base.html' %}
+{% load cache %}
+
+{% block title %}
+  Заказы пользователя {{ owner.username }}
+{% endblock %}
+
+{% block body %}
+  <div>
+    <h2>
+      {% if orders %}
+        Пользователь {{ owner.first_name|default:owner.username }} выполнил следующие заказы:
+      {% else %}
+        У пользователя {{ owner.first_name|default:owner.username }} ещё нет заказов.
+      {% endif %}
+    </h2>
+
+    {% cache 20 user_orders_list owner.pk %}
+      {% if orders %}
+        <ul>
+          {% for order in orders %}
+            <li>
+              <strong>Заказ #{{ order.pk }}</strong>
+              (Создан: {{ order.created_at|date:"d.m.Y H:i" }}) <br>
+              Адрес доставки: {{ order.delivery_address|default:"Не указан" }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endcache %}
+  </div>
+{% endblock %}
