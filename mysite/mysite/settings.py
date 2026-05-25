@@ -9,27 +9,34 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+from os import getenv
 from pathlib import Path
-
+import logging.config
 from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATABASE_DIR = BASE_DIR / "database"
+DATABASE_DIR.mkdir(exist_ok=True)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hvxn%qq=gyw^4*o2lo1#bw0=wh#ux9s8h!=@c608arf_gz3+^7'
+SECRET_KEY = getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-hvxn%qq=gyw^4*o2lo1#bw0=wh#ux9s8h!=@c608arf_gz3+^7"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv("DJANGO_DEBUG", "1")
 
 ALLOWED_HOSTS = [
     '0.0.0.0',
     '127.0.0.1',
-]
+] + getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+
 INTERNAL_IPS=[
     '127.0.0.1',
     '10.0.2.2',
@@ -116,10 +123,10 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        # "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-      "BACKEND":"django.core.cache.backends.filebased.FileBasedCache",
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+      # "BACKEND":"django.core.cache.backends.filebased.FileBasedCache",
       # "LOCATION": "/var/tmp/django_cache",
-      "LOCATION": BASE_DIR / "django_cache",
+      "LOCATION": DATABASE_DIR / "django_cache",
     },
 }
 
@@ -187,39 +194,65 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = reverse_lazy("myauth:about-me")
 LOGIN_URL = reverse_lazy("myauth:login")
 
-LOGFILE_NAME = BASE_DIR /  "log.txt"
-LOGFILE_SIZE = 400
-LOGFILE_COUNT = 3
+LOGLEVEL = getenv('DJANGO_LOGLEVEL','info').upper()
 
-LOGGING = {
+logging.config.dictConfig({
     'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(asctime)s [%(levelname)s]  %(name)s %(message)s'
+        'disable_existing_loggers': False,
+        'formatters': {
+            'console': {
+                'format': '%(asctime)s [%(levelname)s]  [%(name)s:%(lineno)] %(module)s %(message)s '
+            },
         },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter':'verbose',
-        },
-        'logfile': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOGFILE_NAME,
-            'maxBytes': LOGFILE_SIZE,
-            'backupCount': LOGFILE_COUNT,
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': [
-            'console',
-            'logfile',
-        ],
-        'level': 'INFO',
-    },
-}
+       'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+            },
+       },
+       'loggers':{
+           "": {
+               "level": LOGLEVEL,
+               "handlers": [
+                   "console",
+               ],
+           },
+       },
+})
+
+# LOGFILE_NAME = BASE_DIR /  "log.txt"
+# LOGFILE_SIZE = 400
+# LOGFILE_COUNT = 3
+#
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '%(asctime)s [%(levelname)s]  %(name)s %(message)s'
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'formatter':'verbose',
+#         },
+#         'logfile': {
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': LOGFILE_NAME,
+#             'maxBytes': LOGFILE_SIZE,
+#             'backupCount': LOGFILE_COUNT,
+#             'formatter': 'verbose',
+#         },
+#     },
+#     'root': {
+#         'handlers': [
+#             'console',
+#             'logfile',
+#         ],
+#         'level': 'INFO',
+#     },
+# }
 
 # LOGGING = {
 #     'version': 1,
