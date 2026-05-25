@@ -1,3 +1,0 @@
-2026-05-24 14:53:04,633 [INFO]  django.utils.autoreload Watching for file changes with StatReloader
-2026-05-24 14:58:44,737 [WARNING]  django.request Not Found: /shop/users/111/orders/
-2026-05-24 14:59:10,351 [WARNING]  django.security.csrf Forbidden (CSRF token from POST incorrect.): /admin/logout/
