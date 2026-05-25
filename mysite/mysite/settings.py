@@ -117,7 +117,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'sqlite3.db',
+        'NAME': DATABASE_DIR / 'sqlite3.db',
     }
 }
 
@@ -126,7 +126,7 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.dummy.DummyCache",
       # "BACKEND":"django.core.cache.backends.filebased.FileBasedCache",
       # "LOCATION": "/var/tmp/django_cache",
-      "LOCATION": DATABASE_DIR / "django_cache",
+      # "LOCATION": DATABASE_DIR / "database",
     },
 }
 
